@@ -1,4 +1,4 @@
-# RaspberryPi_AD7705_Simulink
+# Raspberry Pi Simulink Driver for AD7705
 
 [![View Raspberry Pi Simulink Driver for AD7705 on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://jp.mathworks.com/matlabcentral/fileexchange/78420-raspberry-pi-simulink-driver-for-ad7705)
 
