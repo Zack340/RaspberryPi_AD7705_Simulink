@@ -1,5 +1,7 @@
 # RaspberryPi_AD7705_Simulink
 
+[![View Raspberry Pi Simulink Driver for AD7705 on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://jp.mathworks.com/matlabcentral/fileexchange/78420-raspberry-pi-simulink-driver-for-ad7705)
+
 ## Overview
 This model makes it possible to log data from AD7705 using Raspberry Pi on Simulink. This model simply reads the binary data from the AD7705. Add post-processing blocks as needed. For example, filtering.
 
