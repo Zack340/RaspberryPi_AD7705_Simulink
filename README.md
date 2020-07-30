@@ -48,16 +48,16 @@ Created with
 
 Normally Raspberry Pi supports only 2 CE ports with SPI0. However, you can increase the number of CE ports to 4 by the following procedure.<br>*If you do not perform this procedure, only CE0 and CE1 ports can be used. Do not use the CE2 and CE3 ports.*
 
-1. Copy *spi0-4cs-overlay.dts* in *dts* folder to Raspberry Pi.
+1. Copy `spi0-4cs-overlay.dts` in `dts` folder to Raspberry Pi.
 
-2. Enter the following command to compile the file. Then copy the generated file to */boot/overlays*.
+2. Enter the following command to compile the file. Then copy the generated file to `/boot/overlays`.
 
    ```
    $ dtc -@ -I dts -O dtb -o spi0-4cs.dtbo spi0-4cs-overlay.dts
    $ sudo cp spi0-3cs.dtbo /boot/overlays
    ```
 
-3. Lanch nano and edit */boot/config.txt*. And reboot the Raspberry Pi.
+3. Lanch nano and edit `/boot/config.txt`. And reboot the Raspberry Pi.
    ```
    $ sudo nano /boot/config.txt
    ```
@@ -100,7 +100,7 @@ The AD7705 has a PGA (programmable gain amplifier) ​​with a programmable gai
 ## Limitation
 * The number of CE ports of SPI
 
-  Up to 2 AD7705 boards can be connected at the same time. You can add up to 4 by modifying Device Trees. Detail -> Addition of SPI CE ports\
+  Up to 2 AD7705 boards can be connected at the same time. You can add up to 4 by modifying Device Trees.<br> More detail : Addition of SPI CE ports\
   Also for reference, AD7705 communicates with SPI mode 3, but the extended SPI (SPI1, 2...) function of Raspberry Pi supports only mode 0 and mode 2. Therefore the AD7705 can only operate on SPI0.
 
 * The number of usable analog ports
