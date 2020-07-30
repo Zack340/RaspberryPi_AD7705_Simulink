@@ -1,7 +1,10 @@
 #include "ad7705_raspi.h"
-#include <wiringPiSPI.h>
 
 struct Settings *sets;
+static const uint8_T spiBPW = 8;
+static const uint16_T spiDelay = 0;
+int32_T spiFds[CE_MAX];
+uint32_T spiSpeeds[CE_MAX];
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,16 +14,11 @@ void initialize(struct Settings *settings)
 {
     sets = settings;
     
-    for (uint8_T i = 0; i < 2; ++i)
+    for (uint8_T i = 0; i < CE_MAX; ++i)
     {
         if (sets->ce[i])
         {
-            int fd = wiringPiSPISetupMode(i, sets->speed, 3);
-            if (fd == -1)
-            {
-                printf("\nFailed to init SPI0/CE%d communication.\n", i);
-                exit(1);
-            }
+            spiSetup(i, sets->speed, 3);
             
             uint8_T resetReg[4] = {0xff, 0xff, 0xff, 0xff};
             uint8_T clockReg[2] = 
@@ -30,35 +28,25 @@ void initialize(struct Settings *settings)
                     {commsResistor(0, 1, 0, 0, sets->ain[i]),
                      setupResistor(sets->calib[i], sets->gain[i], sets->polar[i], sets->buffer[i], 0)};
                      
-            wiringPiSPIDataRW(i, resetReg, 4);
-            wiringPiSPIDataRW(i, clockReg, 2);
-            wiringPiSPIDataRW(i, setupReg, 2);
+            spiDataRW(i, resetReg, 4);
+            spiDataRW(i, clockReg, 2);
+            spiDataRW(i, setupReg, 2);
         }
     }
     
-    delay(2000);
+    sleep(2);
 }
 
-void step(struct Data *data)
+void step(uint16_T *data)
 {
-    for (uint8_T i = 0; i < 2; ++i)
+    for (uint8_T i = 0; i < CE_MAX; ++i)
     {
         if (sets->ce[i])
         {
             uint8_T readReg[3] = {commsResistor(0, 3, 1, 0, sets->ain[i]), 0x00, 0x00};
-            wiringPiSPIDataRW(i, readReg, 3);
+            spiDataRW(i, readReg, 3);
             
-            switch (i)
-            {
-                case 0:
-                    data->ce0ain = (readReg[1]<<8)|(readReg[2]);
-                    break;
-                case 1:
-                    data->ce1ain = (readReg[1]<<8)|(readReg[2]);
-                    break;
-                default:
-                    break;
-            }
+            data[i] = (readReg[1]<<8)|(readReg[2]);
         }
     }
 }
@@ -118,6 +106,60 @@ uint8_T clockResistor(uint8_T CLKDIS, uint8_T CLKDIV, uint8_T CLK_FS)
     reg |= CLK_FS;  // CLK & FS1, FS0
  
     return reg;
+}
+
+int32_T spiDataRW(int32_T ch, uint8_T *data, int32_T len)
+{
+    struct spi_ioc_transfer spi;
+    
+    memset (&spi, 0, sizeof(spi));
+    
+    spi.tx_buf = (uint32_T)data;
+    spi.rx_buf = (uint32_T)data;
+    spi.len = len;
+    spi.delay_usecs = spiDelay;
+    spi.speed_hz = spiSpeeds[ch];
+    spi.bits_per_word = spiBPW;
+    
+    return ioctl(spiFds[ch], SPI_IOC_MESSAGE(1), &spi);
+}
+
+int32_T spiSetup(int32_T ch, int32_T speed, int32_T mode)
+{
+    int32_T fd;
+    int8_T spiDev[32];
+    
+    snprintf(spiDev, 31, "/dev/spidev0.%d", ch);
+    fd = open(spiDev, O_RDWR);
+
+    if (fd < 0)
+    {
+        printf("Unable to open SPI device: %s\n", spiDev);
+        exit(1);
+    }
+
+    spiSpeeds[ch] = speed;
+    spiFds[ch] = fd;
+    
+    if (ioctl(fd, SPI_IOC_WR_MODE, &mode) < 0)
+    {
+        printf("SPI Mode Change failure: %s, mode %d\n", spiDev, mode);
+        exit(1);
+    }
+    
+    if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0)
+    {
+        printf("SPI BPW Change failure: %s, bit per width %d\n", spiDev, spiBPW);
+        exit(1);
+    }
+    
+    if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
+    {
+        printf("SPI Speed Change failure: %s, speed %d\n", spiDev, speed);
+        exit(1);
+    }
+    
+    return fd;
 }
 
 #ifdef __cplusplus
