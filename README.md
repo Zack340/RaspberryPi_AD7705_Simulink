@@ -54,7 +54,7 @@ Normally Raspberry Pi supports only 2 CE ports with SPI0. However, you can incre
 
    ```
    $ dtc -@ -I dts -O dtb -o spi0-4cs.dtbo spi0-4cs-overlay.dts
-   $ sudo cp spi0-3cs.dtbo /boot/overlays
+   $ sudo cp spi0-4cs.dtbo /boot/overlays
    ```
 
 3. Lanch nano and edit `/boot/config.txt`. And reboot the Raspberry Pi.
