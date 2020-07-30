@@ -2,7 +2,7 @@
  *  	Author : Eisuke Matsuzaki
  *  	Created on : 7/29/2020
  *  	Copyright (c) 2020 d’Arbeloff Lab, MIT Department of Mechanical Engineering
- *      Released under the GNU license
+ *      Released under the MIT license
  * 
  *      AD7705 driver for Raspberry Pi
  */ 
