@@ -231,8 +231,8 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
                                   'clockDis' ,obj.ceClockDisId,...
                                   'clockDiv' ,obj.ceClockDivId);
                 
-                coder.cstructname(settings, 'struct Settings', 'extern', 'HeaderFile', 'ad7705_raspi.h');
-                coder.ceval('initialize', coder.ref(settings));
+                coder.cstructname(settings, 'struct ad7705_Settings', 'extern', 'HeaderFile', 'ad7705_raspi.h');
+                coder.ceval('ad7705_initialize', coder.ref(settings));
             end
         end
         
@@ -243,7 +243,7 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
                 % Call C-function implementing device output
                 data = zeros(1, 4, 'uint16');
                 
-                coder.ceval('step', coder.ref(data));
+                coder.ceval('ad7705_step', coder.ref(data));
                 
                 for i = 1:length(data)
                     varargout{i} = data(i);
@@ -256,7 +256,7 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
                 % Place simulation termination code here
             else
                 % Call C-function implementing device termination
-                coder.ceval('terminate');
+                coder.ceval('ad7705_terminate');
             end
         end
         
@@ -490,6 +490,7 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
                 % Use the following API's to add include files, sources and
                 % linker flags
                 addSourceFiles(buildInfo,'ad7705_raspi.c', srcDir);
+                addLinkFlags(buildInfo,'-lpthread');
             end
         end
     end

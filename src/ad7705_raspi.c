@@ -1,62 +1,80 @@
 #include "ad7705_raspi.h"
 
-struct Settings *sets;
+struct ad7705_Settings *ad_sets;
 static const uint8_T spiBPW = 8;
 static const uint16_T spiDelay = 0;
 int32_T spiFds[CE_MAX];
 uint32_T spiSpeeds[CE_MAX];
+pthread_t ad_thread;
+uint16_T ad_pdata[CE_MAX] = {0};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void initialize(struct Settings *settings)
+void ad7705_initialize(struct ad7705_Settings *settings)
 {
-    sets = settings;
+    ad_sets = settings;
     
     for (uint8_T i = 0; i < CE_MAX; ++i)
     {
-        if (sets->ce[i])
+        if (ad_sets->ce[i])
         {
-            spiSetup(i, sets->speed, 3);
+            ad7705_spiSetup(i, ad_sets->speed, 3);
             
             uint8_T resetReg[4] = {0xff, 0xff, 0xff, 0xff};
             uint8_T clockReg[2] = 
-                    {commsResistor(0, 2, 0, 0, sets->ain[i]),
-                     clockResistor(sets->clockDis[i], sets->clockDiv[i], sets->filter)};
+                    {ad7705_commsResistor(0, 2, 0, 0, ad_sets->ain[i]),
+                     ad7705_clockResistor(ad_sets->clockDis[i], ad_sets->clockDiv[i], ad_sets->filter)};
             uint8_T setupReg[2] = 
-                    {commsResistor(0, 1, 0, 0, sets->ain[i]),
-                     setupResistor(sets->calib[i], sets->gain[i], sets->polar[i], sets->buffer[i], 0)};
+                    {ad7705_commsResistor(0, 1, 0, 0, ad_sets->ain[i]),
+                     ad7705_setupResistor(ad_sets->calib[i], ad_sets->gain[i], ad_sets->polar[i], ad_sets->buffer[i], 0)};
                      
-            spiDataRW(i, resetReg, 4);
-            spiDataRW(i, clockReg, 2);
-            spiDataRW(i, setupReg, 2);
+            ad7705_spiDataRW(i, resetReg, 4);
+            ad7705_spiDataRW(i, clockReg, 2);
+            ad7705_spiDataRW(i, setupReg, 2);
         }
     }
     
     sleep(2);
+    
+    pthread_create(&ad_thread, NULL, (void *)ad7705_getValues, &ad_pdata);
 }
 
-void step(uint16_T *data)
+void ad7705_step(uint16_T *data)
 {
+    pthread_join(ad_thread, NULL);
+    
     for (uint8_T i = 0; i < CE_MAX; ++i)
     {
-        if (sets->ce[i])
+        data[i] = ad_pdata[i];
+    }
+    
+    pthread_create(&ad_thread, NULL, (void *)ad7705_getValues, &ad_pdata);
+}
+
+void ad7705_terminate()
+{
+    pthread_join(ad_thread, NULL);
+}
+
+void *ad7705_getValues(void *pdata)
+{
+    uint16_T *data = (uint16_T *)pdata;
+    
+    for (uint8_T i = 0; i < CE_MAX; ++i)
+    {
+        if (ad_sets->ce[i])
         {
-            uint8_T readReg[3] = {commsResistor(0, 3, 1, 0, sets->ain[i]), 0x00, 0x00};
-            spiDataRW(i, readReg, 3);
+            uint8_T readReg[3] = {ad7705_commsResistor(0, 3, 1, 0, ad_sets->ain[i]), 0x00, 0x00};
+            ad7705_spiDataRW(i, readReg, 3);
             
             data[i] = (readReg[1]<<8)|(readReg[2]);
         }
     }
 }
 
-void terminate()
-{
-
-}
-
-uint8_T commsResistor(uint8_T DRDY, uint8_T RS, uint8_T RW, uint8_T STBY, uint8_T CH)
+uint8_T ad7705_commsResistor(uint8_T DRDY, uint8_T RS, uint8_T RW, uint8_T STBY, uint8_T CH)
 {
     uint8_T reg = 0x00;
     
@@ -74,7 +92,7 @@ uint8_T commsResistor(uint8_T DRDY, uint8_T RS, uint8_T RW, uint8_T STBY, uint8_
     return reg;
 }
 
-uint8_T setupResistor(uint8_T MD, uint8_T G, uint8_T BU, uint8_T BUF, uint8_T FSYNC)
+uint8_T ad7705_setupResistor(uint8_T MD, uint8_T G, uint8_T BU, uint8_T BUF, uint8_T FSYNC)
 {
     uint8_T reg = 0x00;
     
@@ -92,7 +110,7 @@ uint8_T setupResistor(uint8_T MD, uint8_T G, uint8_T BU, uint8_T BUF, uint8_T FS
     return reg;
 }
 
-uint8_T clockResistor(uint8_T CLKDIS, uint8_T CLKDIV, uint8_T CLK_FS)
+uint8_T ad7705_clockResistor(uint8_T CLKDIS, uint8_T CLKDIV, uint8_T CLK_FS)
 {
     uint8_T reg = 0x00;
     
@@ -108,7 +126,7 @@ uint8_T clockResistor(uint8_T CLKDIS, uint8_T CLKDIV, uint8_T CLK_FS)
     return reg;
 }
 
-int32_T spiDataRW(int32_T ch, uint8_T *data, int32_T len)
+int32_T ad7705_spiDataRW(int32_T ch, uint8_T *data, int32_T len)
 {
     struct spi_ioc_transfer spi;
     
@@ -124,7 +142,7 @@ int32_T spiDataRW(int32_T ch, uint8_T *data, int32_T len)
     return ioctl(spiFds[ch], SPI_IOC_MESSAGE(1), &spi);
 }
 
-int32_T spiSetup(int32_T ch, int32_T speed, int32_T mode)
+int32_T ad7705_spiSetup(int32_T ch, int32_T speed, int32_T mode)
 {
     int32_T fd;
     int8_T spiDev[32];

@@ -18,6 +18,7 @@
 #include <asm/ioctl.h>
 #include <linux/spi/spidev.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #define CE_MAX 4
 
@@ -25,7 +26,7 @@
 extern "C" {
 #endif
     
-struct Settings
+struct ad7705_Settings
 {
     uint8_T filter;
     uint16_T speed;
@@ -39,14 +40,15 @@ struct Settings
     uint8_T clockDiv[CE_MAX];
 };
 
-void initialize(struct Settings *settings);
-void step(uint16_T *data);
-void terminate();
-uint8_T commsResistor(uint8_T DRDY, uint8_T RS, uint8_T RW, uint8_T STBY, uint8_T CH);
-uint8_T setupResistor(uint8_T MD, uint8_T G, uint8_T BU, uint8_T BUF, uint8_T FSYNC);
-uint8_T clockResistor(uint8_T CLKDIS, uint8_T CLKDIV, uint8_T FS);
-int32_T spiDataRW(int32_T ch, uint8_T *data, int32_T len);
-int32_T spiSetup(int32_T ch, int32_T speed, int32_T mode);
+void ad7705_initialize(struct ad7705_Settings *settings);
+void ad7705_step(uint16_T *data);
+void ad7705_terminate();
+void *ad7705_getValues(void *pdata);
+uint8_T ad7705_commsResistor(uint8_T DRDY, uint8_T RS, uint8_T RW, uint8_T STBY, uint8_T CH);
+uint8_T ad7705_setupResistor(uint8_T MD, uint8_T G, uint8_T BU, uint8_T BUF, uint8_T FSYNC);
+uint8_T ad7705_clockResistor(uint8_T CLKDIS, uint8_T CLKDIV, uint8_T FS);
+int32_T ad7705_spiDataRW(int32_T ch, uint8_T *data, int32_T len);
+int32_T ad7705_spiSetup(int32_T ch, int32_T speed, int32_T mode);
     
 #ifdef __cplusplus
 }
