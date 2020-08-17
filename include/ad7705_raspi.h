@@ -30,6 +30,7 @@ struct ad7705_Settings
 {
     uint8_T filter;
     uint16_T speed;
+    boolean_T init;
     uint8_T ce[CE_MAX];
     uint8_T ain[CE_MAX];
     uint8_T calib[CE_MAX];

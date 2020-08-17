@@ -22,22 +22,31 @@ void ad7705_initialize(struct ad7705_Settings *settings)
         {
             ad7705_spiSetup(i, ad_sets->speed, 3);
             
-            uint8_T resetReg[4] = {0xff, 0xff, 0xff, 0xff};
-            uint8_T clockReg[2] = 
+            if (ad_sets->init)
+            {
+                uint8_T resetReg[4] = {0xff, 0xff, 0xff, 0xff};
+                uint8_T clockReg[2] =
                     {ad7705_commsResistor(0, 2, 0, 0, ad_sets->ain[i]),
                      ad7705_clockResistor(ad_sets->clockDis[i], ad_sets->clockDiv[i], ad_sets->filter)};
-            uint8_T setupReg[2] = 
+                uint8_T setupReg[2] =
                     {ad7705_commsResistor(0, 1, 0, 0, ad_sets->ain[i]),
                      ad7705_setupResistor(ad_sets->calib[i], ad_sets->gain[i], ad_sets->polar[i], ad_sets->buffer[i], 0)};
-                     
-            ad7705_spiDataRW(i, resetReg, 4);
-            ad7705_spiDataRW(i, clockReg, 2);
-            ad7705_spiDataRW(i, setupReg, 2);
+                  
+                ad7705_spiDataRW(i, resetReg, 4);
+                ad7705_spiDataRW(i, clockReg, 2);
+                ad7705_spiDataRW(i, setupReg, 2);
+            }
+            
+            uint8_T drdy = 1;
+            while(drdy)
+            {
+                uint8_T checkReg[2] = {ad7705_commsResistor(0, 0, 1, 0, ad_sets->ain[i]), 0x00};
+                ad7705_spiDataRW(i, checkReg, 2);
+                drdy = checkReg[1] >> 7;
+            }
         }
     }
-    
-    sleep(2);
-    
+
     pthread_create(&ad_thread, NULL, (void *)ad7705_getValues, &ad_pdata);
 }
 

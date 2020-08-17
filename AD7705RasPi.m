@@ -20,6 +20,7 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
     end
     
     properties (Nontunable, Logical)
+        isInit = true; % Enable Initialization
         isCE0 = true; % Enable CE0
         isCE1 = false; % Enable CE1
         isCE2 = false; % Enable CE2  ( Not supported by default )
@@ -222,6 +223,7 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
                 
                 settings = struct('filter', obj.filterId,...
                                   'speed', obj.speedId,...
+                                  'init',  obj.isInit,...
                                   'ce', uint8([obj.isCE0, obj.isCE1, obj.isCE2, obj.isCE3]),...
                                   'ain', obj.ceAinId,...
                                   'calib', obj.ceCalibId,...
@@ -373,7 +375,7 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
         
         function groups = getPropertyGroupsImpl()
            configGroup = matlab.system.display.Section(...
-               'Title', 'General configuration', 'PropertyList', {'filter', 'speed'});
+               'Title', 'General configuration', 'PropertyList', {'filter', 'speed', 'isInit'});
            ce0Group1 = matlab.system.display.Section(...
                'Title', 'Channel', 'PropertyList', {'isCE0', 'ce0Ain'});
            ce0Group2 = matlab.system.display.Section(...
@@ -411,61 +413,61 @@ classdef AD7705RasPi < realtime.internal.SourceSampleTime ...
         
         function flag = isInactivePropertyImpl(obj, propertyName)
             if strcmp(propertyName, 'ce0Ain')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce0Calib')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce0Gain')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce0Polar')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce0Buffer')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce0ClockDiv')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce0ClockDis')
-                flag = ~obj.isCE0;
+                flag = ~obj.isCE0 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1Ain')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1Calib')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1Gain')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1Polar')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1Buffer')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1ClockDiv')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce1ClockDis')
-                flag = ~obj.isCE1;
+                flag = ~obj.isCE1 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2Ain')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2Calib')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2Gain')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2Polar')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2Buffer')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2ClockDiv')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce2ClockDis')
-                flag = ~obj.isCE2;
+                flag = ~obj.isCE2 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3Ain')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3Calib')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3Gain')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3Polar')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3Buffer')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3ClockDiv')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             elseif strcmp(propertyName, 'ce3ClockDis')
-                flag = ~obj.isCE3;
+                flag = ~obj.isCE3 || ~obj.isInit;
             else
                 flag = false;
             end
